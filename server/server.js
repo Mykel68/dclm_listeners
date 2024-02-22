@@ -2,7 +2,8 @@ const express = require('express');
 const axios = require('axios');
 const mongoose = require('mongoose');
 require('dotenv').config();
-const ListenersCount = require('./ListenersCount');
+const ListenersCount = require('./models/ListenersCount');
+
 
 
 const app = express();
@@ -16,6 +17,8 @@ mongoose.connect(process.env.MONGO_URL, {
 }).catch((err) => {
     console.log(err.message);
 });
+
+
 
 // Function to check and update listeners count in the database
 async function updateListenersCount() {
@@ -87,7 +90,7 @@ async function updateListenersCount() {
 }
 
 // Set the interval to run the function every 10 seconds (adjust as needed)
-const intervalInMilliseconds = 30 * 1000; // 10 seconds
+const intervalInMilliseconds = 10 * 1000; // 10 seconds
 setInterval(updateListenersCount, intervalInMilliseconds);
 
 // Start the server
