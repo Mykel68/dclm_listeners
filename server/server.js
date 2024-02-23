@@ -6,6 +6,7 @@ const cors = require('cors');
 const ListenersCount = require('./models/ListenersCount');
 const listenersCountRoutes = require('./routes/listenersCountRoutes'); 
 const AdminRoutes = require('./routes/adminRoutes');
+const eventRoutes = require('./routes/eventRoutes');
 const bodyParser = require('body-parser');
 
 const app = express();
@@ -15,6 +16,8 @@ app.use(express.json());
 
 // Use the listenersCountRoutes for the /api/listenersCount endpoint
 app.use('/api', listenersCountRoutes);
+app.use('/api/admin', AdminRoutes);
+app.use('/api/events', eventRoutes);
 
 
 // Mongoose connection
@@ -32,13 +35,17 @@ mongoose.connect(process.env.MONGO_URL, {
 // Function to check and update listeners count in the database
 async function updateListenersCount() {
     try {
-        console.log('Updating listeners count...');
         // Make a request to the API
         const response = await axios.get('https://stat1.dclm.org/api/nowplaying/1');
         const { live, listeners } = response.data;
 
+        // console.log('API Response:', response.data);
+
         // Check if the station is live
         if (live.is_live) {
+
+            console.log('Station is live. Checking and updating listeners count...');
+
             // Check if the count is within the same day
             const currentDate = new Date();
             const startOfDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
@@ -69,7 +76,7 @@ async function updateListenersCount() {
                 event = 'Revival Broadcast';
                 break;
                 case 5: // Friday
-                event = 'GCK';
+                event = 'Friday';
                 break;
                 case 6: // Saturday
                 event = 'Workers Training';
@@ -106,7 +113,7 @@ const intervalInMilliseconds = 10 * 1000; // 10 seconds
 setInterval(updateListenersCount, intervalInMilliseconds);
 
 
-app.use('/api/admin', AdminRoutes);
+
 
 // Start the server
 const server = app.listen(process.env.PORT, () => {
