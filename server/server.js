@@ -2,11 +2,20 @@ const express = require('express');
 const axios = require('axios');
 const mongoose = require('mongoose');
 require('dotenv').config();
+const cors = require('cors');
 const ListenersCount = require('./models/ListenersCount');
-
-
+const listenersCountRoutes = require('./routes/listenersCountRoutes'); 
+const AdminRoutes = require('./routes/adminRoutes');
+const bodyParser = require('body-parser');
 
 const app = express();
+app.use(cors());
+app.use(express.json());
+
+
+// Use the listenersCountRoutes for the /api/listenersCount endpoint
+app.use('/api', listenersCountRoutes);
+
 
 // Mongoose connection
 mongoose.connect(process.env.MONGO_URL, {
@@ -23,6 +32,7 @@ mongoose.connect(process.env.MONGO_URL, {
 // Function to check and update listeners count in the database
 async function updateListenersCount() {
     try {
+        console.log('Updating listeners count...');
         // Make a request to the API
         const response = await axios.get('https://stat1.dclm.org/api/nowplaying/1');
         const { live, listeners } = response.data;
@@ -59,7 +69,7 @@ async function updateListenersCount() {
                 event = 'Revival Broadcast';
                 break;
                 case 5: // Friday
-                event = 'Live Event';
+                event = 'GCK';
                 break;
                 case 6: // Saturday
                 event = 'Workers Training';
@@ -89,9 +99,14 @@ async function updateListenersCount() {
     }
 }
 
+updateListenersCount()
+
 // Set the interval to run the function every 10 seconds (adjust as needed)
 const intervalInMilliseconds = 10 * 1000; // 10 seconds
 setInterval(updateListenersCount, intervalInMilliseconds);
+
+
+app.use('/api/admin', AdminRoutes);
 
 // Start the server
 const server = app.listen(process.env.PORT, () => {
